@@ -22,12 +22,16 @@ contract HealthTrust {
 
 
     struct Order {
+
     uint orderId;
-    address to; 
-    address from;
+    uint datasetId;
+    address to; //client
+    address from;// researcher
     uint256 amount;
     address tokenAddress;
     uint timestamp;
+    bool completed;
+
     }
 
     mapping(uint8 => string) public genderMapping;
@@ -44,9 +48,9 @@ contract HealthTrust {
     mapping(uint => Order[]) public orders;
 
     uint public orderCount;
-0
 
-    
+
+
 
     constructor() {
         // Initialize gender mapping
@@ -101,7 +105,8 @@ contract HealthTrust {
         uint8 ageRange,
         uint8 bmiCategory,
         uint8[] calldata chronicConditions,
-        uint8[] calldata healthMetricTypes
+        uint8[] calldata healthMetricTypes,
+        address ownerId
 
     ) external returns (bool) {
 
@@ -118,7 +123,7 @@ contract HealthTrust {
             bmiCategory: bmiCategory,
             chronicConditions: chronicConditions,
             healthMetricTypes: healthMetricTypes,
-            submittedBy: msg.sender,
+            owner: ownerId,
             isActive: true
         });
 
@@ -126,7 +131,7 @@ contract HealthTrust {
         return true;}
 
 
-    function order(uint datasetId, uint256 amount, address tokenAddress) external returns (uint) {
+    function orderRequest(uint datasetId, uint256 amount, address tokenAddress) external returns (uint) {
         require(datasets[datasetId].isActive, "Dataset is not active");
         require(amount > 0, "Amount must be greater than 0");
         
@@ -137,10 +142,11 @@ contract HealthTrust {
             orderId: orderCount,
             datasetId: datasetId,
             from: msg.sender,
-            to: datasets[datasetId].submittedBy,
+            to: datasets[datasetId].owner,
             amount: amount,
             tokenAddress: tokenAddress,
-            timestamp: block.timestamp
+            timestamp: block.timestamp,
+            completed: false
         }));
 
         orderCount++;
@@ -148,17 +154,40 @@ contract HealthTrust {
         return orderCount - 1;
     }
 
-    function validateOrder(uint datasetId, uint orderId, address researcherId, uint amount, ) external returns (Order memory) {
+
+    function validateOrder(uint datasetId, uint orderId, address researcherId, uint amount) external returns (Order memory) {
 
         require(orderId < orders[datasetId].length, "Invalid order ID");
-        Order storage order = orders[datasetId][orderId];
-        require(order.from == researcherId, "Only the order creator can validate the order");
-        require(order.timestamp + 1 days > block.timestamp, "Order validation period has expired")
 
-        return order;
+        Order storage order = orders[datasetId][orderId];
+
+        require(order.from == researcherId, "Unauthorized");
+        require(order.amount == amount, "Incorrect amount");
+        require(order.timestamp + 1 days > block.timestamp, "Order expired");
+
+        return order;//choose fields for less gas cost
     }
 
 
-    function orderSubmitted(uint order)
+    function completeOrder(uint orderId, uint datasetId) external {
+        
+        require(orderId < orders[datasetId].length, "Invalid order ID");
+
+        Order storage order = orders[datasetId][orderId];
+
+        require(!order.completed, "Order already completed");
+
+        IERC20 token = IERC20(order.tokenAddress);
+
+        require(token.transfer(order.to, order.amount), "Transfer failed");
+
+        order.completed = true;
+    }
+
+    function getDataset(uint datasetId) external view returns (Dataset memory) {
+
+        return datasets[datasetId];
+
+    }
 
 }
