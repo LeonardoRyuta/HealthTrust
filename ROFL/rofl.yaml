@@ -3,11 +3,11 @@ version: 0.1.0
 tee: tdx
 kind: container
 resources:
-  memory: 512
+  memory: 1024
   cpus: 1
   storage:
     kind: disk-persistent
-    size: 512
+    size: 5000
 artifacts:
   firmware: https://github.com/oasisprotocol/oasis-boot/releases/download/v0.4.2/ovmf.tdx.fd#db47100a7d6a0c1f6983be224137c3f8d7cb09b63bb1c7a5ee7829d8e994a42f
   kernel: https://github.com/oasisprotocol/oasis-boot/releases/download/v0.4.2/stage1.bin#02903bd0ddfe1e3552e95767f1be17e801690d73d90bb1e800aa4879ba46c4d7
@@ -17,14 +17,14 @@ artifacts:
     compose: compose.yaml
 deployments:
   default:
-    app_id: rofl1qpr466pu67gdsvatp8lt8d3lmzdql4zwlqvdf8s5
+    app_id: rofl1qquayy2289pet8g7kayffl60g7tpq0wnu5huvylm
     network: testnet
     paratime: sapphire
     admin: leo_dev
-    oci_repository: rofl.sh/f75d74b4-88a5-4741-ac25-a12b6e38a64f:1746890312
+    oci_repository: rofl.sh/d070236b-b63e-48df-ba5e-50203b22680e:1746918662
     trust_root:
-      height: 26534261
-      hash: fc00702628fea1e21af368e9642a86f75d220345fd0cf34e8393ff775371fc80
+      height: 26537132
+      hash: 2d80a8dc7138ecf6f9a28115aa5e75d219160bb4cf140e29e0e973468810fa89
     policy:
       quotes:
         pcs:
@@ -32,19 +32,19 @@ deployments:
           min_tcb_evaluation_data_number: 18
           tdx: {}
       enclaves:
-        - id: wFSC3p8nysU1mB48oV7lQpWs5oDI8/u1YwxfUDoKecAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
-        - id: LqiUVY1dPhLC8xCNJ9Cd5JaHr/dVvgm9yXmfkb1ZGtcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
+        - id: rXlPfj6n6Y1gi3fk6/hUumdHeFRIY/LG7vR7ASkfEEMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
+        - id: Qq7jajhdTGV7sAmtLAUkPGloZoflbeKFeMfug03AyKQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
       endorsements:
         - any: {}
       fees: endorsing_node
       max_expiration: 3
     secrets:
       - name: JWT_TOKEN
-        value: pGJwa1ggOycBhid41tV8ZtmVi+KpgFZG1eYe7MICyzRI/OYfoyNkbmFtZVgZo2okzGd1Te71HcN2YA1FYjvcTia4gsS5S2Vub25jZU9CIYxcl0Yv3G5DAuiTkphldmFsdWVZAsRD4BXYeZB5OtHqwYtm+FI58lwt8xyLEztq773C7ehJ27G3N3GcDms/uI4BJQ0NCR8xZyyUfI5mwD2OWG3vn0DSkk3rd1rxT7p9vC7HAw6oxONV4WUiGZ5zlZibninX7TfzVuNwt07yfl5dD32V8H6OnhvYR6+Uwxx7FoD2Tzp6dh4z/cqvsDmVGak2FRagKYhX1fx9Zs/SV0gtJNUYJqY//psB9lKCHSYT7oKfNx1GiSP0zU67CTEQUSbFGXLICWfFl3jVFLxhTHVY/bb1q+k6CsHYdMQtC/g+a/OX68+XHg4l0bG8L7hUab6hGafzOPVQLwDjJE8v6ivJ4k4giuv+MM6jUbbRc1Sd8A1yqTp53r0UBt3afGn5damm7pkc+Plp9lnsIVbjpMy/DwrUzo5P9DdkarwzuHLwnSFcuFJ91G7rIH+CbAkOqikHu8kg9jlnZOXIv1czxKr+1nVA+yDo49tez4Z6zmG/o4yEoiaIhmVsTMFr2h7zYEuK9AYTFjZPOhhLeDjY2TsOVqSAS5q80o4k+1jhhT1q3GA1wkqY3yLXQSN6a7n3+qP+MBNcrCkC8gayV1Qw2kzpi5p7vhhKvZHLwGRqPP8zH8e66pp5U/zNs2H8VDRS57OR80IQhkne8WR7QwRrtXTDo3QTpf1CPDg794/wxKzHj75TdtFkYQJLL9MgGFIvkk1hGfZD7hGxXLqhAyCq1OXXtk3e3O48ATzHRULAHEwKtMYLqdL/Gvki3EDH9M7/8Iogt1to2+mk19E+gxM5TKpMKzZlrcUB3uy2KXUiexSHTLtMQvXMCPRiOh/D3x55CvFsRnloYHTxvS1WWjX86/ajmh/Ie4wj54N/YV9zTAkJ3umwChJpYcaJTXmTmm8fWN8VcOj+pJCalzXrkQgkO2KD0t60dy5BnMqXhlH1o3NIp2ucG/hwdr0apU0=
+        value: pGJwa1ggZ91LRKGiErEGSfUo2QjzlcSBXDQdttzbltw8kNaAynJkbmFtZVgZppLQJcQ4keouXSYEdm/N8zRC8OSnjq3McGVub25jZU8qxpcwruOZBPPr/7s//zNldmFsdWVZAsSADV94zxHvb7halCwkyFnxBgR5thG1T7LdAGTobwab+jtjMGwc6MkIpx/4JMc8tnv5zgxQoFhNIJlbvWC1Jz8fIlxjthuYHxLJ8CXqMogZiEZsAfF7mrs3gtJlp7rW8k5E3yhiNGYaoaiOhYi/q6gsjatbq85U8ZhiLFfFP6y7Va/v7wZ8FRmQmSniFol/sl1yPUh6looB6AfH2jmOdc3EcyZLhOwuUOW4CSPGes1u37hShiQHnJbiiNNEen8GIRYiYQkQPgACffl0VmMYEmpDe3Xurmp5Qr1Fqw/QUkmZHXUEw3yxriNm1U0EW5VRW59WDK4MdOHfzqlmdNN6rSUqd9odEyvMk7LDnCkVRh31DuMXXFTbqiO8vAvJVv5f29araXwyz1b40Xfhawt8gk5iSW4vMjaKeWxxd6hNxqqVR5AmsxS5njy52lShNaZrK6C3sucPZFoxD2MnmGHSHmCnEo7lSP8+DCoMexRWLSZFNBsUVN1Fd0cElCghzbm9VL1KLbiDe/VGH3ucayKjqzxylW+xQ1vOZa6kLrTTB488pk9k4CNlJpESFnSEeBJ7gVaCZCIYPfp6RW7A1xK/A9OuzsgR+t+iom4idWUslso0UgTkBauuCjHA7fp5XYn4m+02vzxZdGxy3uG7WVIdC9NTorkNN1++ITeyCtc4pl6Nyh0vTe4WyHWitX1hAZjTuPLOrRQICsS6GjrUapWQBiwTAhDXr6iweiGaBrhYD1Ghn+ESyI7TEBU3/rN3a2DOX0huEj0I1Zv+ZPYpQJhwROkYZqIh4iMMOXKBOf+5yUNp6ZBTUSSCt7Vca9TuOP2P/NjOf0I92fSLfX78KqEVXcTDl3n+WymrdQBDo2vekyqpxzcz+O9QvD27/vOx9LvN6DpzoCYxC5htw6mfiET7/Wxj55tCTf9fXO/gzbmgyRzy1CmOu1w=
       - name: PRIVATE_KEY
-        value: pGJwa1ggeHClimS/bjY72h4DI1gAAgkOmajAhqND9/F7kIqXQ1FkbmFtZVgbNliQOa55WvtPf3IiZM5j/Nz5zEsuoFcjtcbAZW5vbmNlT6q73tkw1HIqecIB0IL4dGV2YWx1ZVhQSS+LFIKx+EMljVTDEryaYpcPNjqBW/oJhjyYwfIQJbT7oVd3QBwNh0HfUzHCfNLy+dvYkxL2kVPxSBmLVfyx2DijZzS5/3/rD04y0LpAWhQ=
+        value: pGJwa1ggBH8JkerigykX/6tkqKGJu/3mVOOcWAHqYFxQWqCBHgdkbmFtZVgb/myyF7jgYMAvJqNKMVD/nwG8hxrEY0DWXR1FZW5vbmNlTzD5vqyIW2TM23Qrk7wUkWV2YWx1ZVhQSbrbMD1dbxtZNKetTII8A/kTQgajm40mSeMPDjoVwy9uMS+nOCmHiR/x8jdmL5864JzoCPINwWt/1ghTM19Pdz7nOAyJClr5ftL2t/IGfms=
     machines:
       default:
         provider: oasis1qp2ens0hsp7gh23wajxa4hpetkdek3swyyulyrmz
         offer: playground_short
-        id: 000000000000004a
+        id: "0000000000000061"

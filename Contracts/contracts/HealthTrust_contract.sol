@@ -52,13 +52,22 @@ contract HealthTrust {
     mapping(uint256 => mapping(uint256 => Order)) public orders;
     uint256 public orderCount;
 
+    string public pubKey;
+
+    function storePubKey(string memory _pubKey) public { 
+        pubKey = _pubKey;
+    }
+
+    function getPubKey() public view returns(string memory) {
+        return pubKey;
+    }
+
     /*———————————————————
         Events
     ———————————————————*/
-    event DatasetSubmitted(uint256 indexed datasetId, address indexed owner);
-    event OrderCreated(uint256 indexed datasetId, uint256 indexed orderId,
-                       address indexed researcher, uint256 amount);
-    event OrderCompleted(uint256 indexed datasetId, uint256 indexed orderId);
+    event DatasetSubmitted(uint256 datasetId, address owner);
+    event OrderCreated(uint256 indexed datasetId, uint256 indexed orderId, address indexed researcher, uint256 amount);
+    event OrderCompleted(uint256 datasetId, uint256 orderId);
 
     /*———————————————————
         Dataset submission
@@ -106,7 +115,7 @@ contract HealthTrust {
         require(amount > 0,  Errors.BAD_AMOUNT);
 
         IERC20 token = IERC20(tokenAddress);
-        token.approve(address(this), amount);
+
         bool ok = token.transferFrom(msg.sender, address(this), amount);
         require(ok, Errors.BAD_TRANSFER);
 
@@ -122,28 +131,6 @@ contract HealthTrust {
         });
 
         emit OrderCreated(datasetId, orderCount, msg.sender, amount);
-        return orderCount++;
-    }
-
-    function orderRequest(
-        uint256 datasetId
-    ) external payable returns (uint256 orderId) {
-        require(msg.value == 1, Errors.BAD_AMOUNT);
-        Dataset storage ds = datasets[datasetId];
-        require(ds.isActive, Errors.DATASET_INACTIVE);
-
-        orders[datasetId][orderCount] = Order({
-            orderId:     orderCount,
-            datasetId:   datasetId,
-            researcher:  msg.sender,
-            patient:     ds.owner,
-            amount:      1,
-            tokenAddress: address(0),
-            timestamp:   uint40(block.timestamp),
-            completed:   false
-        });
-
-        emit OrderCreated(datasetId, orderCount, msg.sender, 1);
         return orderCount++;
     }
 
@@ -183,5 +170,9 @@ contract HealthTrust {
     function getAllDatasets() external view returns (Dataset[] memory out) {
         out = new Dataset[](datasetCount);
         for (uint256 i; i < datasetCount; ++i) out[i] = datasets[i];
+    }
+
+    function getDatasetCount() external view returns (uint256) {
+        return datasetCount;
     }
 }

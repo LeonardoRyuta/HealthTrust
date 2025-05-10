@@ -23,9 +23,11 @@ import (
 // ---- ENV ----
 var (
 	RPC_URL       = "https://testnet.sapphire.oasis.io"
-	CONTRACT_ADDR = common.HexToAddress("0xd02E5Fe32468C5e3857E8958ECcCb6616b0F16Fb")
+	CONTRACT_ADDR = common.HexToAddress("0xe041b50CA3ED1c23F8D7139a11Ed107a010937D5")
 	auth          *pinata.Auth
 	client        *pinata.Client
+	privKey       *string
+	pubKey        *string
 )
 
 func main() {
@@ -49,6 +51,24 @@ func main() {
 
 	auth = pinata.NewAuthWithJWT(os.Getenv("JWT_TOKEN"))
 	client = pinata.New(auth)
+
+	// pk, pu, err := GenerateKeyPair()
+	// if err != nil {
+	// 	log.Printf("Error generating key pair: %v", err)
+	// 	return
+	// }
+
+	pk := "0x69b32ac0113ca525d3c354771d2ed687f1edc2b014400afc2e04995ffe27a964"
+	pu := "0x04fb9e93abb1862b1d8c06340d340e84058f9ce545e9d84d1a4d29258286a08c800c460a7bca92c155f74029fcc9a8e3ba8ae46ecd37311fa349ff2c75b45f001c"
+
+	privKey = &pk
+	pubKey = &pu
+
+	// err = storePubKeyInSC(pu)
+	// if err != nil {
+	// 	log.Printf("Error storing public key in SC: %v", err)
+	// 	return
+	// }
 
 	log.Println("Listening for events...")
 
@@ -121,18 +141,36 @@ func computeHandler(orderId uint64, datasetId uint64) {
 	log.Printf("Data: %v", datares)
 
 	// text, err := fetchIPFS(data.IPFSHash)
-	text, err := fetchIPFS(datares.IPFSHash) // Test IPFS hash
+	encryptedText, err := fetchIPFS(datares.IPFSHash) // Test IPFS hash
 	if err != nil {
 		log.Printf("Error fetching IPFS content: %v", err)
 		return
 	}
 
+	text, err := DecryptData([]byte(encryptedText))
+	if err != nil {
+		log.Printf("Error decrypting IPFS content: %v", err)
+		return
+	}
+
 	log.Printf("IPFS content: %s", text)
+	// Remove outer quotes if needed
 	fixedText := strings.ReplaceAll(text, "\"[", "[")
 	fixedText = strings.ReplaceAll(fixedText, "]\"", "]")
+
+	// Fix missing quotes around timestamp and ensure it's consistent
 	fixedText = strings.ReplaceAll(fixedText, "{timestamp:", "{\"timestamp\":")
+	fixedText = strings.ReplaceAll(fixedText, "{ timestamp:", "{\"timestamp\":")
+
+	// Fix other fields
 	fixedText = strings.ReplaceAll(fixedText, ", heartRate:", ", \"heartRate\":")
 	fixedText = strings.ReplaceAll(fixedText, ", bloodOxygenLevel:", ", \"bloodOxygenLevel\":")
+
+	// Fix missing commas between objects
+	fixedText = strings.ReplaceAll(fixedText, "},{", "},{")
+
+	// Use regex to fix any remaining issues - better approach would be to add this
+	fixedText = strings.ReplaceAll(fixedText, "}{", " },{")
 
 	log.Printf("Fixed text: %s", fixedText)
 	var dataEntries []DataEntry
@@ -157,11 +195,13 @@ func computeHandler(orderId uint64, datasetId uint64) {
 		"averageHeartRate":        averageHR,
 		"averageBloodOxygenLevel": averageBOL,
 	}
+
 	averageDataJson, err := json.Marshal(averageData)
 	if err != nil {
 		log.Printf("Error marshalling average data: %v", err)
 		return
 	}
+
 	averageDataCID, err := addIPFS(string(averageDataJson))
 	if err != nil {
 		log.Printf("Error adding average data to IPFS: %v", err)

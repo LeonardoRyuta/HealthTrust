@@ -6,13 +6,13 @@ var (
       "anonymous": false,
       "inputs": [
         {
-          "indexed": true,
+          "indexed": false,
           "internalType": "uint256",
           "name": "datasetId",
           "type": "uint256"
         },
         {
-          "indexed": true,
+          "indexed": false,
           "internalType": "address",
           "name": "owner",
           "type": "address"
@@ -25,13 +25,13 @@ var (
       "anonymous": false,
       "inputs": [
         {
-          "indexed": true,
+          "indexed": false,
           "internalType": "uint256",
           "name": "datasetId",
           "type": "uint256"
         },
         {
-          "indexed": true,
+          "indexed": false,
           "internalType": "uint256",
           "name": "orderId",
           "type": "uint256"
@@ -263,6 +263,19 @@ var (
       "type": "function"
     },
     {
+      "inputs": [],
+      "name": "getDatasetCount",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
       "inputs": [
         {
           "internalType": "uint256",
@@ -271,6 +284,19 @@ var (
         }
       ],
       "name": "getDatasetHash",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getPubKey",
       "outputs": [
         {
           "internalType": "string",
@@ -393,25 +419,6 @@ var (
       "inputs": [
         {
           "internalType": "uint256",
-          "name": "datasetId",
-          "type": "uint256"
-        }
-      ],
-      "name": "orderRequest",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "orderId",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "payable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
           "name": "",
           "type": "uint256"
         },
@@ -465,6 +472,32 @@ var (
         }
       ],
       "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "pubKey",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "_pubKey",
+          "type": "string"
+        }
+      ],
+      "name": "storePubKey",
+      "outputs": [],
+      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
