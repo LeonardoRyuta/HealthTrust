@@ -18,7 +18,7 @@ services:
   geth:
     image: ethereum/client-go:latest
     container_name: geth
-    command: --ws --ws.addr 0.0.0.0 --ws.origins="*" --testnet --rpc.allow-unprotected-txs
+    command: --ws --ws.addr 0.0.0.0 --ws.origins="*"
     ports:
       - "8546:8546"  # WebSocket port
     volumes:
