@@ -25,8 +25,8 @@ WORKDIR /app
 # Copy the binary from the build stage
 COPY --from=build /app/rofl-service .
 
-# Expose the application port
-EXPOSE 8000
+# The app now connects to external services rather than hosting them
+# No need to expose HTTP ports since it's not a REST API anymore
 
 # Run the application
 CMD ["./rofl-service"]
