@@ -1,57 +1,37 @@
 package main
 
 import (
-	"io"
+	"io/ioutil"
 	"log"
-	"os"
-	"strings"
-
-	shell "github.com/ipfs/go-ipfs-api"
+	"net/http"
 )
 
-func getIPFSHost() string {
-	host := os.Getenv("IPFS_HOST")
-	if host == "" {
-		return "127.0.0.1:5001" // Default fallback
-	}
-	return host
-}
-
-func fetchIPFS(ipfsHash string) (string, error) {
-	ipfsHost := getIPFSHost()
-	sh := shell.NewShell(ipfsHost)
-	log.Printf("Connecting to IPFS at: %s", ipfsHost)
-
-	// Get content from IPFS
-	rc, err := sh.Cat(ipfsHash)
+func fetchIPFS(cid string) (string, error) {
+	//make a noraml http get request to https://ipfs.io/ipfs/<cid> and print the response
+	resp, err := http.Get("https://ipfs.io/ipfs/" + cid)
 	if err != nil {
-		log.Printf("Failed to retrieve IPFS content: %v", err)
+		log.Printf("Failed to fetch IPFS content: %v", err)
+		return "", err
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("Failed to read IPFS response: %v", err)
 		return "", err
 	}
 
-	bytes, err := io.ReadAll(rc)
-	if err != nil {
-		log.Printf("Failed to read IPFS content: %v", err)
-		return "", err
-	}
+	log.Printf("Fetched content from IPFS: %s", string(body))
+	return string(body), nil
 
-	text := string(bytes)
-	log.Printf("IPFS content: %s", text)
-
-	return text, nil
 }
 
 func addIPFS(content string) (string, error) {
-	ipfsHost := getIPFSHost()
-	sh := shell.NewShell(ipfsHost)
-	log.Printf("Connecting to IPFS at: %s", ipfsHost)
-
-	// Add content to IPFS
-	cid, err := sh.Add(strings.NewReader(content))
+	// Upload the content to IPFS using Pinata
+	pin, err := client.PinJSON(content, nil)
 	if err != nil {
-		log.Printf("Failed to add content to IPFS: %v", err)
+		log.Printf("Failed to upload to IPFS: %v", err)
 		return "", err
 	}
-	log.Printf("Added content to IPFS with CID: %s", cid)
-	return cid, nil
+
+	log.Printf("Uploaded content to IPFS: %s", pin.IpfsHash)
+	return pin.IpfsHash, nil
 }

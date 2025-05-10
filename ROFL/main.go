@@ -3,86 +3,111 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"io"
+	"fmt"
+	"os"
+
+	// "io"
 	"log"
 	"math/big"
-	"net/http"
 	"strings"
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/zde37/pinata-go-sdk/pinata"
 )
 
 // ---- ENV ----
 var (
 	RPC_URL       = "https://testnet.sapphire.oasis.io"
-	CONTRACT_ADDR = common.HexToAddress("0xBb18E81753179d29071772DcEf8f8B2dcd368184")
+	CONTRACT_ADDR = common.HexToAddress("0xd02E5Fe32468C5e3857E8958ECcCb6616b0F16Fb")
+	auth          *pinata.Auth
+	client        *pinata.Client
 )
 
 func main() {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		resp := map[string]string{"message": "Hello World"}
-		enc := json.NewEncoder(w)
-		enc.Encode(resp)
-	})
+	cli, _ := ethclient.Dial("wss://testnet.sapphire.oasis.io/ws")
 
-	http.HandleFunc("/test", testfunc)
+	sig := []byte("OrderCreated(uint256,uint256,address,uint256)")
+	topic := crypto.Keccak256Hash(sig)
 
-	http.HandleFunc("/compute", computeHandler)
+	log.Printf("Topic: %s", topic.Hex())
 
-	http.HandleFunc("/addToIPFS", func(w http.ResponseWriter, r *http.Request) {
-		// use body as input
-		body, err := io.ReadAll(r.Body)
-		if err != nil {
-			http.Error(w, "Error reading request body", http.StatusBadRequest)
-			return
-		}
-
-		cid, err := addIPFS(string(body))
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		w.Write([]byte(cid))
-	})
-
-	log.Println("API listening on :8000")
-	log.Fatal(http.ListenAndServe(":8000", nil))
-}
-
-func testfunc(w http.ResponseWriter, r *http.Request) {
-	text, err := readContract()
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
+	q := ethereum.FilterQuery{
+		Addresses: []common.Address{CONTRACT_ADDR},
+		Topics:    [][]common.Hash{{topic}},
 	}
 
-	log.Printf("IPFS content: %s", text)
-
-	// Send the content as a response
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(text))
-	log.Printf("IPFS content sent as response")
-}
-
-func computeHandler(w http.ResponseWriter, r *http.Request) {
-	dec := json.NewDecoder(r.Body)
-	var req computeReq
-	if err := dec.Decode(&req); err != nil {
-		http.Error(w, "bad json", 400)
-		return
+	logs := make(chan types.Log)
+	sub, err := cli.SubscribeFilterLogs(context.Background(), q, logs)
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	log.Printf("Received request: %v", req)
-	log.Printf("Order ID: %d", req.OrderId)
+	auth = pinata.NewAuthWithJWT(os.Getenv("JWT_TOKEN"))
+	client = pinata.New(auth)
 
-	order, err := getStake(req.OrderId, req.DatasetId)
+	log.Println("Listening for events...")
+
+	for {
+		select {
+		case err := <-sub.Err():
+			log.Println("Error:", err)
+		case vLog := <-logs:
+			go handle(vLog, topic)
+		}
+	}
+}
+
+func handle(vLog types.Log, topic common.Hash) {
+	log.Printf("Received log: %v", vLog)
+
+	var ev struct {
+		DatasetId  *big.Int
+		OrderId    *big.Int
+		Researcher common.Address
+		Amount     *big.Int
+	}
+
+	abiObj, _ := abi.JSON(strings.NewReader(`[{
+	  "anonymous":false,
+	  "inputs":[
+		 {"indexed":true,"name":"datasetId","type":"uint256"},
+		 {"indexed":true,"name":"orderId","type":"uint256"},
+		 {"indexed":true,"name":"researcher","type":"address"},
+		 {"indexed":false,"name":"amount","type":"uint256"}],
+	  "name":"OrderCreated",
+	  "type":"event"}]`))
+
+	if vLog.Topics[0] == topic {
+		// indexed fields come from topics[1..3]
+		ev.DatasetId = new(big.Int).SetBytes(vLog.Topics[1].Bytes())
+		ev.OrderId = new(big.Int).SetBytes(vLog.Topics[2].Bytes())
+		ev.Researcher = common.BytesToAddress(vLog.Topics[3].Bytes())
+
+		// non‑indexed amount sits in Data
+		if err := abiObj.UnpackIntoInterface(&ev, "OrderCreated", vLog.Data); err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf("order %d on dataset %d by %s amount %s\n",
+			ev.OrderId, ev.DatasetId, ev.Researcher.Hex(), ev.Amount)
+
+		orderId := ev.OrderId.Uint64()
+		datasetId := ev.DatasetId.Uint64()
+
+		computeHandler(orderId, datasetId)
+	}
+}
+
+func computeHandler(orderId uint64, datasetId uint64) {
+	log.Printf("Order ID: %d", orderId)
+
+	order, err := getStake(orderId, datasetId)
 	if err != nil {
-		http.Error(w, err.Error(), 500)
+		log.Printf("Error getting order: %v", err)
 		return
 	}
 	log.Printf("Order: %v", order)
@@ -90,7 +115,7 @@ func computeHandler(w http.ResponseWriter, r *http.Request) {
 
 	datares, err := getDataHash(order.DatasetId)
 	if err != nil {
-		http.Error(w, err.Error(), 500)
+		log.Printf("Error getting data hash: %v", err)
 		return
 	}
 	log.Printf("Data: %v", datares)
@@ -98,19 +123,21 @@ func computeHandler(w http.ResponseWriter, r *http.Request) {
 	// text, err := fetchIPFS(data.IPFSHash)
 	text, err := fetchIPFS(datares.IPFSHash) // Test IPFS hash
 	if err != nil {
-		http.Error(w, err.Error(), 500)
+		log.Printf("Error fetching IPFS content: %v", err)
 		return
 	}
 
 	log.Printf("IPFS content: %s", text)
-
-	fixedText := strings.ReplaceAll(text, "{timestamp:", "{\"timestamp\":")
+	fixedText := strings.ReplaceAll(text, "\"[", "[")
+	fixedText = strings.ReplaceAll(fixedText, "]\"", "]")
+	fixedText = strings.ReplaceAll(fixedText, "{timestamp:", "{\"timestamp\":")
 	fixedText = strings.ReplaceAll(fixedText, ", heartRate:", ", \"heartRate\":")
 	fixedText = strings.ReplaceAll(fixedText, ", bloodOxygenLevel:", ", \"bloodOxygenLevel\":")
 
+	log.Printf("Fixed text: %s", fixedText)
 	var dataEntries []DataEntry
 	if err := json.Unmarshal([]byte(fixedText), &dataEntries); err != nil {
-		http.Error(w, err.Error(), 500)
+		log.Printf("Error unmarshalling JSON: %v", err)
 		return
 	}
 
@@ -132,12 +159,12 @@ func computeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	averageDataJson, err := json.Marshal(averageData)
 	if err != nil {
-		http.Error(w, err.Error(), 500)
+		log.Printf("Error marshalling average data: %v", err)
 		return
 	}
 	averageDataCID, err := addIPFS(string(averageDataJson))
 	if err != nil {
-		http.Error(w, err.Error(), 500)
+		log.Printf("Error adding average data to IPFS: %v", err)
 		return
 	}
 
@@ -145,15 +172,9 @@ func computeHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = completeOrder(order.OrderId, order.DatasetId)
 	if err != nil {
-		http.Error(w, err.Error(), 500)
+		log.Printf("Error completing order: %v", err)
 		return
 	}
-
-	// Send the average data CID as a response
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(averageDataCID))
-	log.Printf("Average data CID sent as response")
 }
 
 func readContract() (string, error) {
