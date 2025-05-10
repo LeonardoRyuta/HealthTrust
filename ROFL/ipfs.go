@@ -3,13 +3,24 @@ package main
 import (
 	"io"
 	"log"
+	"os"
 	"strings"
 
 	shell "github.com/ipfs/go-ipfs-api"
 )
 
+func getIPFSHost() string {
+	host := os.Getenv("IPFS_HOST")
+	if host == "" {
+		return "127.0.0.1:5001" // Default fallback
+	}
+	return host
+}
+
 func fetchIPFS(ipfsHash string) (string, error) {
-	sh := shell.NewShell("127.0.0.1:5001") // IPFS shell :contentReference[oaicite:8]{index=8}
+	ipfsHost := getIPFSHost()
+	sh := shell.NewShell(ipfsHost)
+	log.Printf("Connecting to IPFS at: %s", ipfsHost)
 
 	// Get content from IPFS
 	rc, err := sh.Cat(ipfsHash)
@@ -31,7 +42,10 @@ func fetchIPFS(ipfsHash string) (string, error) {
 }
 
 func addIPFS(content string) (string, error) {
-	sh := shell.NewShell("127.0.0.1:5001") // IPFS shell :contentReference[oaicite:8]{index=8}
+	ipfsHost := getIPFSHost()
+	sh := shell.NewShell(ipfsHost)
+	log.Printf("Connecting to IPFS at: %s", ipfsHost)
+
 	// Add content to IPFS
 	cid, err := sh.Add(strings.NewReader(content))
 	if err != nil {

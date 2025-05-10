@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  healthtrust:
+    build: .
+    image: "ghcr.io/leonardoryuta/healthtrust"
+    platform: linux/amd64
+    ports:
+      - "8000:8000"
+    environment:
+      - PRIVATE_KEY=${PRIVATE_KEY}
+      - IPFS_HOST=http://ipfs:5001  # Add http:// protocol prefix
+    depends_on:
+      - ipfs
+    networks:
+      - healthtrust_network
+
+  ipfs:
+    image: ipfs/kubo:latest
+    container_name: ipfs
+    ports:
+      - "4001:4001"
+      - "5001:5001"
+      - "8080:8080"
+    volumes:
+      - ipfs_data:/data/ipfs
+    environment:
+      - IPFS_PROFILE=server
+      - IPFS_PATH=/data/ipfs
+    networks:
+      - healthtrust_network
+    command: >
+      daemon --migrate=true --agent-version-suffix=docker 
+      --routing=dhtclient 
+      --enable-pubsub-experiment --enable-namesys-pubsub
+      --enable-gc 
+      --api=/ip4/0.0.0.0/tcp/5001
+
+networks:
+  healthtrust_network:
+    driver: bridge
+
+volumes:
+  ipfs_data:

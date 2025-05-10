@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"io"
 	"log"
 	"math/big"
 	"net/http"
@@ -18,7 +19,6 @@ import (
 var (
 	RPC_URL       = "https://testnet.sapphire.oasis.io"
 	CONTRACT_ADDR = common.HexToAddress("0xBb18E81753179d29071772DcEf8f8B2dcd368184")
-	IPFS_GATEWAY  = "nftstorage.link"
 )
 
 func main() {
@@ -31,6 +31,23 @@ func main() {
 	http.HandleFunc("/test", testfunc)
 
 	http.HandleFunc("/compute", computeHandler)
+
+	http.HandleFunc("/addToIPFS", func(w http.ResponseWriter, r *http.Request) {
+		// use body as input
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			http.Error(w, "Error reading request body", http.StatusBadRequest)
+			return
+		}
+
+		cid, err := addIPFS(string(body))
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.Write([]byte(cid))
+	})
 
 	log.Println("API listening on :8000")
 	log.Fatal(http.ListenAndServe(":8000", nil))
