@@ -1,0 +1,35 @@
+services:
+  healthtrust:
+    build: .
+    image: "ghcr.io/leonardoryuta/healthtrust"
+    platform: linux/amd64
+    environment:
+      - PRIVATE_KEY=${PRIVATE_KEY}
+      - JWT_TOKEN=${JWT_TOKEN}
+      # Use the geth service's WebSocket endpoint
+      - RPC_URL=ws://geth:8546
+      - CONTRACT_ADDR=0xd02E5Fe32468C5e3857E8958ECcCb6616b0F16Fb
+    depends_on:
+      - geth
+    restart: unless-stopped
+    networks:
+      - healthtrust_network
+
+  geth:
+    image: ethereum/client-go:latest
+    container_name: geth
+    command: --ws --ws.addr 0.0.0.0 --ws.origins="*"
+    ports:
+      - "8546:8546"  # WebSocket port
+    volumes:
+      - geth_data:/root/.ethereum
+    networks:
+      - healthtrust_network
+    restart: unless-stopped
+
+networks:
+  healthtrust_network:
+    driver: bridge
+
+volumes:
+  geth_data:

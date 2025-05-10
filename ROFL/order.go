@@ -5,6 +5,7 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 	"math/big"
+	"os"
 	"reflect"
 	"strings"
 
@@ -124,7 +125,7 @@ func completeOrder(orderId uint64, datasetId uint64) error {
 	}
 
 	// Load the private key
-	privateKey, err := crypto.HexToECDSA("ee1c48c4331066fd0c3b74d699f3801d63628797aea78ff2ade7ff350ea36839")
+	privateKey, err := crypto.HexToECDSA(os.Getenv("PRIVATE_KEY"))
 	if err != nil {
 		return fmt.Errorf("invalid private key: %v", err)
 	}
