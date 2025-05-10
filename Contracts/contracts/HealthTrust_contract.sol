@@ -10,7 +10,7 @@ interface IERC20 {
 contract HealthTrust {
 
     struct Dataset {
-    string cid;
+    string ipfsHash;
     uint8 gender;
     uint8 ageRange;
     uint8 bmiCategory;
@@ -45,7 +45,8 @@ contract HealthTrust {
 
     uint public datasetCount;
 
-    mapping(uint => Order[]) public orders;
+    // Change the orders mapping to use a nested mapping instead of an array
+    mapping(uint => mapping(uint => Order)) public orders; // datasetId => orderId => Order
 
     uint public orderCount;
 
@@ -59,20 +60,20 @@ contract HealthTrust {
         genderMapping[2] = "Other";
 
         // Initialize age range mapping
-        ageRangeMapping[0] = "18–23";
-        ageRangeMapping[1] = "24–29";
-        ageRangeMapping[2] = "30–35";
-        ageRangeMapping[3] = "36–41";
-        ageRangeMapping[4] = "42–47";
-        ageRangeMapping[5] = "48–53";
-        ageRangeMapping[6] = "54–59";
-        ageRangeMapping[7] = "60–65";
-        ageRangeMapping[8] = "66–71";
-        ageRangeMapping[9] = "72–77";
-        ageRangeMapping[10] = "78–83";
-        ageRangeMapping[11] = "84–89";
-        ageRangeMapping[12] = "90–95";
-        ageRangeMapping[13] = "96–100";
+        ageRangeMapping[0] = "18/23";
+        ageRangeMapping[1] = "24/29";
+        ageRangeMapping[2] = "30/35";
+        ageRangeMapping[3] = "36/41";
+        ageRangeMapping[4] = "42/47";
+        ageRangeMapping[5] = "48/53";
+        ageRangeMapping[6] = "54/59";
+        ageRangeMapping[7] = "60/65";
+        ageRangeMapping[8] = "66/71";
+        ageRangeMapping[9] = "72/77";
+        ageRangeMapping[10] = "78/83";
+        ageRangeMapping[11] = "84/89";
+        ageRangeMapping[12] = "90/95";
+        ageRangeMapping[13] = "96/100";
 
         // Initialize BMI category mapping
         bmiCategoryMapping[0] = "Underweight";
@@ -99,14 +100,12 @@ contract HealthTrust {
     }
     
     function submitDataset(
-
-        string calldata  _cid,
+        string calldata _ipfsHash,
         uint8 gender,
         uint8 ageRange,
         uint8 bmiCategory,
         uint8[] calldata chronicConditions,
-        uint8[] calldata healthMetricTypes,
-        address ownerId
+        uint8[] calldata healthMetricTypes
 
     ) external returns (bool) {
 
@@ -116,19 +115,19 @@ contract HealthTrust {
 
 
         datasets[datasetCount] = Dataset({
-
-            cid: _cid,
+            ipfsHash: _ipfsHash,
             gender: gender,
             ageRange: ageRange,
             bmiCategory: bmiCategory,
             chronicConditions: chronicConditions,
             healthMetricTypes: healthMetricTypes,
-            owner: ownerId,
+            owner: msg.sender,
             isActive: true
         });
 
         datasetCount++;
-        return true;}
+        return true;
+    }
 
 
     function orderRequest(uint datasetId, uint256 amount, address tokenAddress) external returns (uint) {
@@ -138,7 +137,8 @@ contract HealthTrust {
         IERC20 token = IERC20(tokenAddress);
         require(token.transferFrom(msg.sender, address(this), amount), "Transfer failed");
 
-        orders[datasetId].push(Order({
+        // Store order directly in the nested mapping
+        orders[datasetId][orderCount] = Order({
             orderId: orderCount,
             datasetId: datasetId,
             from: msg.sender,
@@ -147,40 +147,32 @@ contract HealthTrust {
             tokenAddress: tokenAddress,
             timestamp: block.timestamp,
             completed: false
-        }));
+        });
 
         orderCount++;
-
         return orderCount - 1;
     }
 
 
-    function validateOrder(uint datasetId, uint orderId, address researcherId, uint amount) external returns (Order memory) {
-
-        require(orderId < orders[datasetId].length, "Invalid order ID");
-
+    function validateOrder(uint datasetId, uint orderId, address rAddr, uint amount) external view returns (Order memory) {
         Order storage order = orders[datasetId][orderId];
-
-        require(order.from == researcherId, "Unauthorized");
+        require(order.from == rAddr, "Unauthorized");
         require(order.amount == amount, "Incorrect amount");
         require(order.timestamp + 1 days > block.timestamp, "Order expired");
+        require(datasets[datasetId].owner == order.to, "Receiver not matching dataset owner");
 
-        return order;//choose fields for less gas cost
+        return order;
     }
 
 
-    function completeOrder(uint orderId, uint datasetId) external {
-        
-        require(orderId < orders[datasetId].length, "Invalid order ID");
-
+    // Update completeOrder function accordingly
+    function completeOrder(uint datasetId, uint orderId) external {
         Order storage order = orders[datasetId][orderId];
-
         require(!order.completed, "Order already completed");
-
+        
         IERC20 token = IERC20(order.tokenAddress);
-
         require(token.transfer(order.to, order.amount), "Transfer failed");
-
+        
         order.completed = true;
     }
 
@@ -188,6 +180,19 @@ contract HealthTrust {
 
         return datasets[datasetId];
 
+    }
+    function getDatasetHash(uint datasetId) external view returns (string memory) {
+
+        return datasets[datasetId].ipfsHash;
+
+    }
+
+    function getAllDatasets() external view returns (Dataset[] memory) {
+        Dataset[] memory allDatasets = new Dataset[](datasetCount);
+        for (uint i = 0; i < datasetCount; i++) {
+            allDatasets[i] = datasets[i];
+        }
+        return allDatasets;
     }
 
 }
