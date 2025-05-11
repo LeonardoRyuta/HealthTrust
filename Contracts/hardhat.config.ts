@@ -3,7 +3,7 @@ import "@nomicfoundation/hardhat-toolbox";
 import "@oasisprotocol/sapphire-hardhat";
 import "./tasks"
 
-const accounts = ["9c393bf805b1f48bd19c446b54ef2b9d79266b372fb79d22362da7bdae42702c"];
+const accounts = ["ee1c48c4331066fd0c3b74d699f3801d63628797aea78ff2ade7ff350ea36839"];
 
 const config: HardhatUserConfig = {
   solidity: "0.8.28",

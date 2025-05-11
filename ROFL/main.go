@@ -23,7 +23,7 @@ import (
 // ---- ENV ----
 var (
 	RPC_URL       = "https://testnet.sapphire.oasis.io"
-	CONTRACT_ADDR = common.HexToAddress("0xe041b50CA3ED1c23F8D7139a11Ed107a010937D5")
+	CONTRACT_ADDR = common.HexToAddress("0x50739936402555eE6034c09FA77e007036fD23A1")
 	auth          *pinata.Auth
 	client        *pinata.Client
 	privKey       *string
@@ -52,23 +52,20 @@ func main() {
 	auth = pinata.NewAuthWithJWT(os.Getenv("JWT_TOKEN"))
 	client = pinata.New(auth)
 
-	// pk, pu, err := GenerateKeyPair()
-	// if err != nil {
-	// 	log.Printf("Error generating key pair: %v", err)
-	// 	return
-	// }
-
-	pk := "0x69b32ac0113ca525d3c354771d2ed687f1edc2b014400afc2e04995ffe27a964"
-	pu := "0x04fb9e93abb1862b1d8c06340d340e84058f9ce545e9d84d1a4d29258286a08c800c460a7bca92c155f74029fcc9a8e3ba8ae46ecd37311fa349ff2c75b45f001c"
+	pk, pu, err := GenerateKeyPair()
+	if err != nil {
+		log.Printf("Error generating key pair: %v", err)
+		return
+	}
 
 	privKey = &pk
 	pubKey = &pu
 
-	// err = storePubKeyInSC(pu)
-	// if err != nil {
-	// 	log.Printf("Error storing public key in SC: %v", err)
-	// 	return
-	// }
+	err = storePubKeyInSC(pu)
+	if err != nil {
+		log.Printf("Error storing public key in SC: %v", err)
+		return
+	}
 
 	log.Println("Listening for events...")
 
@@ -210,7 +207,7 @@ func computeHandler(orderId uint64, datasetId uint64) {
 
 	log.Printf("Average data CID: %s", averageDataCID)
 
-	err = completeOrder(order.OrderId, order.DatasetId)
+	err = completeOrder(order.OrderId, order.DatasetId, averageDataCID)
 	if err != nil {
 		log.Printf("Error completing order: %v", err)
 		return

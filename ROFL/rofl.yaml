@@ -3,11 +3,11 @@ version: 0.1.0
 tee: tdx
 kind: container
 resources:
-  memory: 1024
+  memory: 512
   cpus: 1
   storage:
     kind: disk-persistent
-    size: 5000
+    size: 512
 artifacts:
   firmware: https://github.com/oasisprotocol/oasis-boot/releases/download/v0.4.2/ovmf.tdx.fd#db47100a7d6a0c1f6983be224137c3f8d7cb09b63bb1c7a5ee7829d8e994a42f
   kernel: https://github.com/oasisprotocol/oasis-boot/releases/download/v0.4.2/stage1.bin#02903bd0ddfe1e3552e95767f1be17e801690d73d90bb1e800aa4879ba46c4d7
@@ -17,34 +17,21 @@ artifacts:
     compose: compose.yaml
 deployments:
   default:
-    app_id: rofl1qquayy2289pet8g7kayffl60g7tpq0wnu5huvylm
+    app_id: rofl1qpcdpacwzckawdqy9ef05r6jyhv45lp2mvr3n672
     network: testnet
     paratime: sapphire
     admin: leo_dev
-    oci_repository: rofl.sh/d070236b-b63e-48df-ba5e-50203b22680e:1746918662
     trust_root:
-      height: 26537132
-      hash: 2d80a8dc7138ecf6f9a28115aa5e75d219160bb4cf140e29e0e973468810fa89
+      height: 26542032
+      hash: aea6688965e76b9f8f74f1e7bef01a6e905a824e1722d6521ce88e20c6369f87
     policy:
       quotes:
         pcs:
           tcb_validity_period: 30
           min_tcb_evaluation_data_number: 18
           tdx: {}
-      enclaves:
-        - id: rXlPfj6n6Y1gi3fk6/hUumdHeFRIY/LG7vR7ASkfEEMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
-        - id: Qq7jajhdTGV7sAmtLAUkPGloZoflbeKFeMfug03AyKQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
+      enclaves: []
       endorsements:
         - any: {}
       fees: endorsing_node
       max_expiration: 3
-    secrets:
-      - name: JWT_TOKEN
-        value: pGJwa1ggZ91LRKGiErEGSfUo2QjzlcSBXDQdttzbltw8kNaAynJkbmFtZVgZppLQJcQ4keouXSYEdm/N8zRC8OSnjq3McGVub25jZU8qxpcwruOZBPPr/7s//zNldmFsdWVZAsSADV94zxHvb7halCwkyFnxBgR5thG1T7LdAGTobwab+jtjMGwc6MkIpx/4JMc8tnv5zgxQoFhNIJlbvWC1Jz8fIlxjthuYHxLJ8CXqMogZiEZsAfF7mrs3gtJlp7rW8k5E3yhiNGYaoaiOhYi/q6gsjatbq85U8ZhiLFfFP6y7Va/v7wZ8FRmQmSniFol/sl1yPUh6looB6AfH2jmOdc3EcyZLhOwuUOW4CSPGes1u37hShiQHnJbiiNNEen8GIRYiYQkQPgACffl0VmMYEmpDe3Xurmp5Qr1Fqw/QUkmZHXUEw3yxriNm1U0EW5VRW59WDK4MdOHfzqlmdNN6rSUqd9odEyvMk7LDnCkVRh31DuMXXFTbqiO8vAvJVv5f29araXwyz1b40Xfhawt8gk5iSW4vMjaKeWxxd6hNxqqVR5AmsxS5njy52lShNaZrK6C3sucPZFoxD2MnmGHSHmCnEo7lSP8+DCoMexRWLSZFNBsUVN1Fd0cElCghzbm9VL1KLbiDe/VGH3ucayKjqzxylW+xQ1vOZa6kLrTTB488pk9k4CNlJpESFnSEeBJ7gVaCZCIYPfp6RW7A1xK/A9OuzsgR+t+iom4idWUslso0UgTkBauuCjHA7fp5XYn4m+02vzxZdGxy3uG7WVIdC9NTorkNN1++ITeyCtc4pl6Nyh0vTe4WyHWitX1hAZjTuPLOrRQICsS6GjrUapWQBiwTAhDXr6iweiGaBrhYD1Ghn+ESyI7TEBU3/rN3a2DOX0huEj0I1Zv+ZPYpQJhwROkYZqIh4iMMOXKBOf+5yUNp6ZBTUSSCt7Vca9TuOP2P/NjOf0I92fSLfX78KqEVXcTDl3n+WymrdQBDo2vekyqpxzcz+O9QvD27/vOx9LvN6DpzoCYxC5htw6mfiET7/Wxj55tCTf9fXO/gzbmgyRzy1CmOu1w=
-      - name: PRIVATE_KEY
-        value: pGJwa1ggBH8JkerigykX/6tkqKGJu/3mVOOcWAHqYFxQWqCBHgdkbmFtZVgb/myyF7jgYMAvJqNKMVD/nwG8hxrEY0DWXR1FZW5vbmNlTzD5vqyIW2TM23Qrk7wUkWV2YWx1ZVhQSbrbMD1dbxtZNKetTII8A/kTQgajm40mSeMPDjoVwy9uMS+nOCmHiR/x8jdmL5864JzoCPINwWt/1ghTM19Pdz7nOAyJClr5ftL2t/IGfms=
-    machines:
-      default:
-        provider: oasis1qp2ens0hsp7gh23wajxa4hpetkdek3swyyulyrmz
-        offer: playground_short
-        id: "0000000000000061"
