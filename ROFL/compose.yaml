@@ -8,3 +8,5 @@ services:
       - JWT_TOKEN=${JWT_TOKEN}
 
     restart: unless-stopped
+    # volumes:
+    # - /run/rofl-appd.sock:/run/rofl-appd.sock

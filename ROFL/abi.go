@@ -3,6 +3,17 @@ package main
 var (
 	ABI_JSON = `[
     {
+      "inputs": [
+        {
+          "internalType": "bytes21",
+          "name": "_roflAppID",
+          "type": "bytes21"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
       "anonymous": false,
       "inputs": [
         {
@@ -82,6 +93,11 @@ var (
           "internalType": "uint256",
           "name": "orderId",
           "type": "uint256"
+        },
+        {
+          "internalType": "string",
+          "name": "ipfsHash",
+          "type": "string"
         }
       ],
       "name": "completeOrder",
@@ -482,6 +498,38 @@ var (
           "internalType": "string",
           "name": "",
           "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "resultRegistry",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "roflAppID",
+      "outputs": [
+        {
+          "internalType": "bytes21",
+          "name": "",
+          "type": "bytes21"
         }
       ],
       "stateMutability": "view",

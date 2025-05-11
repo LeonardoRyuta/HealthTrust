@@ -117,7 +117,7 @@ func getStake(orderid uint64, datasetid uint64) (Order, error) {
 	return Order{}, fmt.Errorf("could not decode return data: %v", unpacked[0])
 }
 
-func completeOrder(orderId uint64, datasetId uint64) error {
+func completeOrder(orderId uint64, datasetId uint64, ipfsHash string) error {
 	// Connect to Ethereum client
 	cli, err := ethclient.Dial(RPC_URL)
 	if err != nil {
@@ -156,7 +156,7 @@ func completeOrder(orderId uint64, datasetId uint64) error {
 	}
 
 	// Pack the data
-	input, err := escAbi.Pack("completeOrder", big.NewInt(int64(datasetId)), big.NewInt(int64(orderId)))
+	input, err := escAbi.Pack("completeOrder", big.NewInt(int64(datasetId)), big.NewInt(int64(orderId)), ipfsHash)
 	if err != nil {
 		return fmt.Errorf("failed to pack data: %v", err)
 	}
@@ -214,3 +214,69 @@ func completeOrder(orderId uint64, datasetId uint64) error {
 
 	return nil
 }
+
+// const (
+// 	baseURL         = "http://localhost"
+// 	endpointPath    = "/rofl/v1/tx/sign-submit"
+// 	defaultGasLimit = 200_000
+// )
+
+// func CompleteOrder(ctx context.Context, datasetID, orderID *big.Int) error {
+
+// 	//------------------------------------------------------------
+// 	// 1) ABI‑encode the function call
+// 	//------------------------------------------------------------
+// 	parsed, err := abi.JSON(bytes.NewReader([]byte(
+// 		`[{"inputs":[{"internalType":"uint256","name":"datasetId","type":"uint256"},
+// 		             {"internalType":"uint256","name":"orderId" , "type":"uint256"}],
+// 		    "name":"completeOrder","outputs":[],"stateMutability":"nonpayable","type":"function"}]`,
+// 	)))
+// 	if err != nil {
+// 		return fmt.Errorf("parse ABI: %w", err)
+// 	}
+// 	data, err := parsed.Pack("completeOrder", datasetID, orderID)
+// 	if err != nil {
+// 		return fmt.Errorf("pack arguments: %w", err)
+// 	}
+
+// 	//------------------------------------------------------------
+// 	// 2) Build the JSON body the endpoint expects
+// 	//------------------------------------------------------------
+// 	body := map[string]any{
+// 		"tx": map[string]any{
+// 			"kind": "eth",
+// 			"data": map[string]any{
+// 				"gas_limit": defaultGasLimit,
+// 				"to":        CONTRACT_ADDR,
+// 				"value":     0,
+// 				"data":      hexutil.Encode(data), // 0x‑prefixed
+// 			},
+// 		},
+// 	}
+// 	raw, err := json.Marshal(body)
+// 	if err != nil {
+// 		return fmt.Errorf("marshal request body: %w", err)
+// 	}
+
+// 	//------------------------------------------------------------
+// 	// 3) Fire the POST request
+// 	//------------------------------------------------------------
+// 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, baseURL+endpointPath, bytes.NewReader(raw))
+// 	if err != nil {
+// 		return fmt.Errorf("new request: %w", err)
+// 	}
+// 	req.Header.Set("Content-Type", "application/json")
+
+// 	// HTTP client with a sensible timeout
+// 	client := &http.Client{Timeout: 15 * time.Second}
+// 	resp, err := client.Do(req)
+// 	if err != nil {
+// 		return fmt.Errorf("POST %s: %w", endpointPath, err)
+// 	}
+// 	defer resp.Body.Close()
+
+// 	if resp.StatusCode != http.StatusOK {
+// 		return fmt.Errorf("endpoint returned %s", resp.Status)
+// 	}
+// 	return nil
+// }
