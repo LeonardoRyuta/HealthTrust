@@ -52,7 +52,7 @@ contract HealthTrust {
     // dataentryId => orderId => Order
     mapping(uint256 => mapping(uint256 => Order)) public orders;
     uint256 public orderCount;
-
+    
     string public pubKey;
 
     mapping(uint256 => DataEntry) public entries;
@@ -77,7 +77,7 @@ contract HealthTrust {
         Events
     ———————————————————*/
     event DatasetSubmitted(uint256 dataentryId, address owner);
-    
+
     event OrderCreated(
         uint256 indexed dataentryId,
         uint256 indexed orderId,
